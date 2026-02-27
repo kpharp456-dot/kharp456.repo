@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Settings - Banking Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 5px;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .navigation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            background-color: #138496;
+        }
+        .nav-btn.home {
+            background-color: #6c757d;
+        }
+        .nav-btn.home:hover {
+            background-color: #5a6268;
+        }
+        
+        .environment-status {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .environment-status.sandbox {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .environment-status.development {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        .environment-status.production {
+            background: linear-gradient(135deg, #dc3545 0%, #e94657 100%);
+        }
+        .current-env {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .env-description {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .env-cost {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .environment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .env-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .env-card:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        }
+        .env-card.active {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        .env-card.sandbox {
+            border-color: #28a745;
+        }
+        .env-card.sandbox.active {
+            background-color: #f8fff9;
+        }
+        .env-card.development {
+            border-color: #ffc107;
+        }
+        .env-card.development.active {
+            background-color: #fffdf7;
+        }
+        .env-card.production {
+            border-color: #dc3545;
+        }
+        .env-card.production.active {
+            background-color: #fff8f8;
+        }
+        .env-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .env-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .env-info {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <h3>🧭 Quick Navigation</h3>
+            <div class="nav-buttons">
+                <a href="/banking" class="nav-btn">📊 Transaction Editor</a>
+                <a href="/connect" class="nav-btn">🔗 Connect a Bank</a>
+                <a href="/connected-banks" class="nav-btn">🏦 View Connected Banks</a>
+                <a href="/analytics" class="nav-btn">📈 Analytics</a>
+                <a href="/categorization-rules" class="nav-btn">🏷️ Categorization Rules</a>
+                <a href="/categories" class="nav-btn">📋 Categories</a>
+                <a href="/" class="nav-btn home">🏠 Home</a>
+            </div>
+        </div>
+
+        <div class="header">
+            <h1>🔧 Environment Settings</h1>
+            <div>
+                <button class="btn btn-primary" onclick="loadEnvironment()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div>🔄 Loading environment settings...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEnvironment = null;
+
+        // Load current environment
+        async function loadEnvironment() {
+            try {
+                const response = await fetch('/api/environment');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentEnvironment = data.environment;
+                    renderEnvironment();
+                } else {
+                    document.getElementById('content').innerHTML = `
+                        <div class="error">
+                            ❌ Error loading environment: ${data.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Render environment interface
+        function renderEnvironment() {
+            const env = currentEnvironment;
+            
+            const statusHtml = `
+                <div class="environment-status ${env.current}">
+                    <div class="current-env">${env.name} Environment</div>
+                    <div class="env-description">${env.description}</div>
+                    <div class="env-cost">💰 Cost: ${env.cost} | 📊 Data: ${env.data}</div>
+                </div>
+            `;
+
+            const warningHtml = env.current !== 'sandbox' ? `
+                <div class="warning-box">
+                    <strong>⚠️ Warning:</strong> You are currently in ${env.name} mode. API calls will incur costs. 
+                    Switch to Sandbox mode for free testing with fake data.
+                </div>
+            ` : '';
+
+            const optionsHtml = `
+                <div class="environment-options">
+                    <div class="env-card sandbox ${env.current === 'sandbox' ? 'active' : ''}" onclick="switchEnvironment('sandbox')">
+                        <div class="env-icon">🧪</div>
+                        <div class="env-name">Sandbox</div>
+                        <div class="env-info">
+                            <strong>Free</strong><br>
+                            Test data only<br>
+                            No API costs
+                        </div>
+                    </div>
+                    
+                    <div class="env-card production ${env.current === 'production' ? 'active' : ''}" onclick="switchEnvironment('production')">
+                        <div class="env-icon">🚀</div>
+                        <div class="env-name">Production</div>
+                        <div class="env-info">
+                            <strong>Pay-per-use</strong><br>
+                            Real bank data<br>
+                            API costs apply
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = statusHtml + warningHtml + optionsHtml;
+        }
+
+        // Switch environment
+        async function switchEnvironment(newEnv) {
+            if (currentEnvironment && currentEnvironment.current === newEnv) {
+                return; // Already in this environment
+            }
+
+            const confirmMessage = getConfirmMessage(newEnv);
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/environment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ environment: newEnv })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    // Reload environment info
+                    setTimeout(loadEnvironment, 1000);
+                } else {
+                    showMessage(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Get confirmation message for environment switch
+        function getConfirmMessage(newEnv) {
+            const messages = {
+                'sandbox': 'Switch to Sandbox mode? This will use free test data and disconnect any real bank connections.',
+                'production': 'Switch to Production mode? This is for live apps with real bank data and will incur API costs.'
+            };
+            return messages[newEnv] || `Switch to ${newEnv} environment?`;
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.header'));
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Load environment on page load
+        window.onload = function() {
+            loadEnvironment();
+        };
+    </script>
+</body>
+</html>

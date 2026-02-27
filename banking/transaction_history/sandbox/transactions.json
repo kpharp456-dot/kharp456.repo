@@ -1,0 +1,218 @@
+[
+  {
+    "amount": 6.33,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Transportation",
+    "date": "2026-02-26",
+    "name": "Uber 072515 SF**POOL**",
+    "transaction_id": "37mP1nAmPxU1VPpWD8wmS4n7KrKNLduZJam6X"
+  },
+  {
+    "amount": 25,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Transfer",
+    "date": "2026-02-13",
+    "name": "CREDIT CARD 3333 PAYMENT *//",
+    "transaction_id": "PaGrzkDGrAs3RZj8pnoJSdNaw1wQEVfod4Xaq"
+  },
+  {
+    "amount": 5.4,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Transportation",
+    "date": "2026-02-13",
+    "name": "Uber 063015 SF**POOL**",
+    "transaction_id": "xezxlDnzxmczDlkAGmojh3XAjLjrbQH6wEyjL"
+  },
+  {
+    "amount": -500,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Travel",
+    "date": "2026-02-11",
+    "name": "United Airlines",
+    "transaction_id": "dnQgEM6Qg9FlBdLqKvG8UMgXeWeJEaiJN3BKA"
+  },
+  {
+    "amount": 12,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Food & Dining",
+    "date": "2026-02-10",
+    "name": "McDonald's",
+    "transaction_id": "aWjkp6bjkGSdGZbjp5QeT5NVE7EwZbCZ49kwl"
+  },
+  {
+    "amount": 4.33,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-02-10",
+    "name": "Starbucks",
+    "transaction_id": "4el6Ln5l6dcovkmqd8rxURMq3Q3LDntJ5xlz6"
+  },
+  {
+    "amount": 89.4,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-02-09",
+    "name": "SparkFun",
+    "transaction_id": "NxWqK8DWqyfzdM7mEoeKhZyaxexRQ6uyZ1XdP"
+  },
+  {
+    "amount": -4.22,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-02-08",
+    "name": "INTRST PYMNT",
+    "transaction_id": "jqopELnop6H7WkZJ1bG5UEweb6bRo3H643vdp"
+  },
+  {
+    "amount": 6.33,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-01-27",
+    "name": "Uber 072515 SF**POOL**",
+    "transaction_id": "9LBkrREBkjuAK9XpeqkWIyPEzMN3jdhqB68bK"
+  },
+  {
+    "amount": 25,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-01-14",
+    "name": "CREDIT CARD 3333 PAYMENT *//",
+    "transaction_id": "rabqE7nbqosZg4WMD7Q1UeW3NkJV9LTdmzwrg"
+  },
+  {
+    "amount": 5.4,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-01-14",
+    "name": "Uber 063015 SF**POOL**",
+    "transaction_id": "vjKBXgnKBJfKWn6Zy7mwhM4Z5B3pGetvJdx4J"
+  },
+  {
+    "amount": -500,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Travel",
+    "date": "2026-01-12",
+    "name": "United Airlines",
+    "transaction_id": "RNbB3wDbBAfdXwyEprBLTjkoZLmBpgtPMEjr5"
+  },
+  {
+    "amount": 12,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Food & Dining",
+    "date": "2026-01-11",
+    "name": "McDonald's",
+    "transaction_id": "6ZKXlnEKX4fAgn7vl8eGI7zdqrlNLZs1k5JMA"
+  },
+  {
+    "amount": 4.33,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-01-11",
+    "name": "Starbucks",
+    "transaction_id": "XZkoPbWkoRf7oR5q8mjkUgAE37Jaepi1Jagzz"
+  },
+  {
+    "amount": 89.4,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-01-10",
+    "name": "SparkFun",
+    "transaction_id": "DmQo7nDQoGIbG3gRVPDnce1RAqDrbKT4dMe9A"
+  },
+  {
+    "amount": -4.22,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2026-01-09",
+    "name": "INTRST PYMNT",
+    "transaction_id": "zZ3JKlX3J1fy6vG47X8nS5ZR3wlXdNs3jnaAL"
+  },
+  {
+    "amount": 6.33,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2025-12-28",
+    "name": "Uber 072515 SF**POOL**",
+    "transaction_id": "VeKp4ZDKpmcPr7z9gnLvHkzvZy8rE7fqlrkL3"
+  },
+  {
+    "amount": 25,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2025-12-15",
+    "name": "CREDIT CARD 3333 PAYMENT *//",
+    "transaction_id": "Bn7wPLb7wWFjgJX5d4WKtJakZnL1xrczaly9j"
+  },
+  {
+    "amount": 5.4,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2025-12-15",
+    "name": "Uber 063015 SF**POOL**",
+    "transaction_id": "w7r3ERmr31Uyqw84ZQpBSbyArR3V9XcEM89Dn"
+  },
+  {
+    "amount": -500,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Travel",
+    "date": "2025-12-13",
+    "name": "United Airlines",
+    "transaction_id": "5Qq7pnmq7asAG5jKmkwQIdW4lpQ8MxcGJmVeB"
+  },
+  {
+    "amount": 12,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Food & Dining",
+    "date": "2025-12-12",
+    "name": "McDonald's",
+    "transaction_id": "JrokLwDokWclJEaQmMdWUjqEbKLG6xtQxPjlR"
+  },
+  {
+    "amount": 4.33,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2025-12-12",
+    "name": "Starbucks",
+    "transaction_id": "kKgwEMWgwofMawj7de9RsGLvoRAP1xhJavE4N"
+  },
+  {
+    "amount": 89.4,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2025-12-11",
+    "name": "SparkFun",
+    "transaction_id": "lr87Emn87ocD1QZNg94yI5zyK9mRDpsaNxWKl"
+  },
+  {
+    "amount": -4.22,
+    "bank_id": "bank_1",
+    "bank_name": "Unknown Bank",
+    "category": "Uncategorized",
+    "date": "2025-12-10",
+    "name": "INTRST PYMNT",
+    "transaction_id": "37mP1nAmPxU1VPpWD8wmS4n9NZQbBKcmXxJ7E"
+  }
+]

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories Management - Banking Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 5px;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn:hover { opacity: 0.8; }
+        
+        .navigation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            background-color: #138496;
+        }
+        .nav-btn.home {
+            background-color: #6c757d;
+        }
+        .nav-btn.home:hover {
+            background-color: #5a6268;
+        }
+        
+        .categories-container {
+            margin-top: 20px;
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.3s ease;
+        }
+        .category-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .category-name {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        .category-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .no-categories {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .no-categories-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .add-category-btn {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed #ddd;
+            background: transparent;
+            border-radius: 6px;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        .add-category-btn:hover {
+            border-color: #007bff;
+            color: #007bff;
+            background: #f8f9ff;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #0066cc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <h3>🧭 Quick Navigation</h3>
+            <div class="nav-buttons">
+                <a href="/banking" class="nav-btn">📊 Transaction Editor</a>
+                <a href="/connect" class="nav-btn">🔗 Connect a Bank</a>
+                <a href="/connected-banks" class="nav-btn">🏦 View Connected Banks</a>
+                <a href="/analytics" class="nav-btn">📈 Analytics</a>
+                <a href="/categorization-rules" class="nav-btn">🏷️ Categorization Rules</a>
+                <a href="/" class="nav-btn home">🏠 Home</a>
+            </div>
+        </div>
+
+        <div class="header">
+            <h1>📋 Categories Management</h1>
+            <div>
+                <button class="btn btn-success" onclick="showAddCategoryModal()">➕ Add Category</button>
+                <button class="btn btn-primary" onclick="loadCategories()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 Tip:</strong> Categories you create here will appear in all dropdown menus throughout the banking system, including the transaction editor and categorization rules.
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div>🔄 Loading categories...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add Category</h2>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label for="categoryName">Category Name:</label>
+                    <input type="text" id="categoryName" required placeholder="e.g., Travel, Entertainment, etc.">
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let categories = [];
+        let editingIndex = -1;
+
+        // Load categories from API
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                
+                if (data.success) {
+                    categories = data.categories;
+                    renderCategories();
+                } else {
+                    document.getElementById('content').innerHTML = `
+                        <div class="error">
+                            ❌ Error loading categories: ${data.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Render categories
+        function renderCategories() {
+            const content = document.getElementById('content');
+            
+            if (categories.length === 0) {
+                content.innerHTML = `
+                    <div class="no-categories">
+                        <div class="no-categories-icon">📋</div>
+                        <h2>No Categories</h2>
+                        <p>Create categories to organize your transactions.</p>
+                        <button class="btn btn-success" onclick="showAddCategoryModal()">
+                            ➕ Create Your First Category
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const categoriesHtml = categories.map((category, index) => `
+                <div class="category-item">
+                    <div class="category-name">${category}</div>
+                    <div class="category-actions">
+                        <button class="btn btn-primary" onclick="editCategory(${index})">✏️</button>
+                        <button class="btn btn-danger" onclick="deleteCategory(${index})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+
+            content.innerHTML = `
+                <button class="add-category-btn" onclick="showAddCategoryModal()">
+                    ➕ Add New Category
+                </button>
+                <div class="categories-container">
+                    ${categoriesHtml}
+                </div>
+            `;
+        }
+
+        // Show add category modal
+        function showAddCategoryModal() {
+            document.getElementById('modalTitle').textContent = 'Add Category';
+            document.getElementById('categoryForm').reset();
+            editingIndex = -1;
+            document.getElementById('categoryModal').style.display = 'block';
+        }
+
+        // Edit category
+        function editCategory(index) {
+            const category = categories[index];
+            document.getElementById('modalTitle').textContent = 'Edit Category';
+            document.getElementById('categoryName').value = category;
+            editingIndex = index;
+            document.getElementById('categoryModal').style.display = 'block';
+        }
+
+        // Delete category
+        async function deleteCategory(index) {
+            const category = categories[index];
+            
+            // Don't allow deleting "Uncategorized" if it exists
+            if (category.toLowerCase() === 'uncategorized') {
+                alert('The "Uncategorized" category cannot be deleted as it is required by the system.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete "${category}"? Any transactions using this category will become uncategorized.`)) {
+                return;
+            }
+            
+            categories.splice(index, 1);
+            await saveCategories();
+        }
+
+        // Save categories
+        async function saveCategories() {
+            try {
+                const response = await fetch('/api/categories', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ categories: categories })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    renderCategories();
+                } else {
+                    showMessage(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.header'));
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Handle form submission
+        document.getElementById('categoryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const categoryName = document.getElementById('categoryName').value.trim();
+            
+            if (!categoryName) {
+                alert('Please enter a category name.');
+                return;
+            }
+            
+            // Check for duplicates
+            const existingIndex = categories.findIndex(cat => 
+                cat.toLowerCase() === categoryName.toLowerCase()
+            );
+            
+            if (existingIndex !== -1 && existingIndex !== editingIndex) {
+                alert('A category with this name already exists.');
+                return;
+            }
+            
+            if (editingIndex >= 0) {
+                // Update existing category
+                categories[editingIndex] = categoryName;
+            } else {
+                // Add new category
+                categories.push(categoryName);
+            }
+            
+            await saveCategories();
+            closeModal();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('categoryModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Load categories when page loads
+        window.onload = function() {
+            loadCategories();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+{
+  "rules": [
+    {
+      "actions": {
+        "set_category": "Bills & Utilities"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "netflix",
+          "youtube tv"
+        ]
+      },
+      "description": "Categorize subscription services",
+      "enabled": true,
+      "id": "subscriptions_rule",
+      "name": "Subscriptions"
+    },
+    {
+      "actions": {
+        "set_category": "Bills & Utilities"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "sage pest",
+          "waste pro",
+          "dukeenergy",
+          "city of mount ho"
+        ]
+      },
+      "description": "Categorize utility payments",
+      "enabled": true,
+      "id": "utility_rule",
+      "name": "Utility"
+    },
+    {
+      "actions": {
+        "set_category": "Personal Care"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "gymo",
+          "corporate",
+          "stowe family"
+        ]
+      },
+      "description": "Categorize gym memberships",
+      "enabled": true,
+      "id": "gym_rule",
+      "name": "Gym"
+    },
+    {
+      "actions": {
+        "set_category": "Shopping"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "amazon"
+        ]
+      },
+      "description": "Categorize Amazon purchases",
+      "enabled": true,
+      "id": "amazon_rule",
+      "name": "Amazon"
+    },
+    {
+      "actions": {
+        "set_category": "Transportation"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "tollway"
+        ]
+      },
+      "description": "Categorize toll payments",
+      "enabled": true,
+      "id": "tolls_rule",
+      "name": "Tolls"
+    },
+    {
+      "actions": {
+        "set_category": "Personal Care"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "lucky dog"
+        ]
+      },
+      "description": "Categorize daycare expenses",
+      "enabled": true,
+      "id": "daycare_rule",
+      "name": "Daycare"
+    },
+    {
+      "actions": {
+        "set_category": "Food & Dining"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "mcdonald",
+          "burger king",
+          "wendy"
+        ]
+      },
+      "description": "Categorize fast food restaurants",
+      "enabled": true,
+      "id": "fast_food_rule",
+      "name": "Fast Food"
+    },
+    {
+      "actions": {
+        "set_category": "Transportation"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "exxon",
+          "circle k",
+          "shell",
+          "thorntons",
+          "flying j",
+          "marathon",
+          "7-eleven"
+        ]
+      },
+      "description": "Categorize gas station purchases",
+      "enabled": true,
+      "id": "gas_stations_rule",
+      "name": "Gas Stations"
+    },
+    {
+      "actions": {
+        "set_category": "Bills & Utilities"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "zelle money sent to donna harper"
+        ]
+      },
+      "description": "Categorize rent payments",
+      "enabled": true,
+      "id": "rent_rule",
+      "name": "Rent"
+    },
+    {
+      "actions": {
+        "set_category": "Transfer"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "zelle",
+          "venmo"
+        ]
+      },
+      "description": "Categorize Venmo and Zelle transfers",
+      "enabled": true,
+      "id": "venmo_zelle_rule",
+      "name": "Venmo/Zelle"
+    },
+    {
+      "actions": {
+        "set_category": "Income"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "deposit from lowe"
+        ]
+      },
+      "description": "Categorize paycheck deposits",
+      "enabled": true,
+      "id": "paycheck_rule",
+      "name": "Paycheck"
+    },
+    {
+      "actions": {
+        "set_category": "Income"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "interest"
+        ]
+      },
+      "description": "Categorize interest payments",
+      "enabled": true,
+      "id": "interest_rule",
+      "name": "Interest"
+    },
+    {
+      "actions": {
+        "set_category": "Groceries"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "food lion",
+          "harris teeter"
+        ]
+      },
+      "description": "Categorize grocery store purchases",
+      "enabled": true,
+      "id": "groceries_rule",
+      "name": "Groceries"
+    },
+    {
+      "actions": {
+        "set_category": "Bills & Utilities"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "synchrony"
+        ]
+      },
+      "description": "Categorize loan payments",
+      "enabled": true,
+      "id": "loans_rule",
+      "name": "Loans"
+    },
+    {
+      "actions": {
+        "set_category": "Bills & Utilities"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "travelers"
+        ]
+      },
+      "description": "Categorize insurance payments",
+      "enabled": true,
+      "id": "insurance_rule",
+      "name": "Insurance"
+    },
+    {
+      "actions": {
+        "set_category": "Travel"
+      },
+      "conditions": {
+        "category": null,
+        "name_contains": [
+          "united"
+        ]
+      },
+      "description": "This is a test",
+      "enabled": true,
+      "id": "rule_1769828066828",
+      "name": "Test Rule"
+    }
+  ]
+}

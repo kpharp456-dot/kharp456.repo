@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Editor - Banking Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .summary {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .editable {
+            background-color: #fff9c4;
+            cursor: text;
+        }
+        .editable:hover {
+            background-color: #fff59d;
+        }
+        .amount-positive {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .amount-negative {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .search-box {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .category-select {
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .date-filter {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .bank-column {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+        .navigation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-buttons .btn {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Banking Transaction Editor</h1>
+            <div>
+                <button class="btn btn-primary" onclick="fetchTransactions()">🔄 Refresh</button>
+                <button class="btn btn-warning" onclick="refreshFromBanks()">💰 Fetch from Banks (API)</button>
+                <button class="btn btn-success" onclick="saveChanges()">💾 Save Changes</button>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <h3>🧭 Quick Navigation</h3>
+            <div class="nav-buttons">
+                <button class="btn btn-info" onclick="window.location.href='/connect'">🔗 Connect a Bank</button>
+                <button class="btn btn-info" onclick="window.location.href='/connected-banks'">🏦 View Connected Banks</button>
+                <button class="btn btn-info" onclick="window.location.href='/environment'">🔧 Environment</button>
+                <button class="btn btn-info" onclick="window.location.href='/analytics'">📈 Analytics</button>
+                <button class="btn btn-info" onclick="window.location.href='/categorization-rules'">🏷️ Categorization Rules</button>
+                <button class="btn btn-info" onclick="window.location.href='/categories'">📋 Categories</button>
+                <button class="btn btn-secondary" onclick="window.location.href='/'">🏠 Home</button>
+            </div>
+        </div>
+
+        <div class="header">
+            <h3>🔍 Search & Filter</h3>
+            <input type="text" class="search-box" id="searchBox" placeholder="Search transactions..." onkeyup="filterTransactions()">
+            <div style="margin-left: 20px;">
+                <label for="dateFilter">From:</label>
+                <input type="date" id="dateFilter" class="date-filter" onchange="filterTransactions()">
+                <label for="dateFilterTo">To:</label>
+                <input type="date" id="dateFilterTo" class="date-filter" onchange="filterTransactions()">
+                <button class="btn btn-primary" onclick="clearDateFilter()">Clear Dates</button>
+            </div>
+        </div>
+
+        <table id="transactionTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Bank</th>
+                    <th>Category</th>
+                    <th>Transaction ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="transactionTableBody">
+                <tr>
+                    <td colspan="7" style="text-align: center;">Loading transactions...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let transactions = [];
+        const categories = [
+            'Food & Dining', 'Transportation', 'Shopping', 'Entertainment',
+            'Bills & Utilities', 'Healthcare', 'Travel', 'Education',
+            'Personal Care', 'Groceries', 'Income', 'Transfer', 'Uncategorized'
+        ];
+
+        // Fetch transactions from the server
+        async function fetchTransactions() {
+            try {
+                const response = await fetch('/get-transactions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    transactions = data.transactions;
+                    renderTransactions();
+                } else {
+                    alert('Error fetching transactions: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Render transactions in the table
+        function renderTransactions(filteredTransactions = null) {
+            const tbody = document.getElementById('transactionTableBody');
+            const dataToRender = filteredTransactions || transactions;
+            
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No transactions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = dataToRender.map((transaction, index) => `
+                <tr data-index="${index}">
+                    <td>${transaction.date}</td>
+                    <td class="editable" contenteditable="true" data-field="name">${transaction.name}</td>
+                    <td class="amount-${transaction.amount >= 0 ? 'positive' : 'negative'}">
+                        $${Math.abs(transaction.amount).toFixed(2)}
+                    </td>
+                    <td class="bank-column">${transaction.bank_name || 'Unknown Bank'}</td>
+                    <td>
+                        <select class="category-select" data-field="category">
+                            ${categories.map(cat => 
+                                `<option value="${cat}" ${transaction.category === cat ? 'selected' : ''}>${cat}</option>`
+                            ).join('')}
+                        </select>
+                    </td>
+                    <td style="font-size: 12px; max-width: 150px; word-break: break-all;">
+                        ${transaction.transaction_id || 'N/A'}
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteTransaction(${index})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Add event listeners for editable fields
+            document.querySelectorAll('.editable').forEach(element => {
+                element.addEventListener('blur', function() {
+                    const index = this.closest('tr').dataset.index;
+                    const field = this.dataset.field;
+                    transactions[index][field] = this.textContent;
+                });
+            });
+
+            document.querySelectorAll('.category-select').forEach(element => {
+                element.addEventListener('change', function() {
+                    const index = this.closest('tr').dataset.index;
+                    transactions[index].category = this.value;
+                });
+            });
+        }
+
+        // Filter transactions based on search and date
+        function filterTransactions() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const dateFrom = document.getElementById('dateFilter').value;
+            const dateTo = document.getElementById('dateFilterTo').value;
+            
+            const filtered = transactions.filter(transaction => {
+                // Search filter
+                const matchesSearch = transaction.name.toLowerCase().includes(searchTerm) ||
+                    (transaction.category && transaction.category.toLowerCase().includes(searchTerm)) ||
+                    transaction.date.includes(searchTerm) ||
+                    (transaction.bank_name && transaction.bank_name.toLowerCase().includes(searchTerm));
+                
+                // Date filter
+                let matchesDate = true;
+                if (dateFrom && transaction.date < dateFrom) {
+                    matchesDate = false;
+                }
+                if (dateTo && transaction.date > dateTo) {
+                    matchesDate = false;
+                }
+                
+                return matchesSearch && matchesDate;
+            });
+            
+            renderTransactions(filtered);
+        }
+
+        // Clear date filters
+        function clearDateFilter() {
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('dateFilterTo').value = '';
+            filterTransactions();
+        }
+
+        // Delete a transaction
+        function deleteTransaction(index) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                transactions.splice(index, 1);
+                renderTransactions();
+            }
+        }
+
+        // Save changes to server
+        async function saveChanges() {
+            try {
+                const response = await fetch('/save-transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ transactions: transactions })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Changes saved successfully!');
+                } else {
+                    alert('❌ Error saving changes: ' + result.error);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Refresh transactions from all banks
+        async function refreshFromBanks() {
+            try {
+                const confirmRefresh = confirm('💰 This will make API calls to fetch latest transactions from all banks.\n\nContinue with refresh?');
+                if (!confirmRefresh) {
+                    return;
+                }
+                
+                alert('🔄 Refreshing transactions from all connected banks...\nThis may take a moment.');
+                
+                const response = await fetch('/refresh-transactions');
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ ' + result.message);
+                    // Reload transactions from server
+                    await fetchTransactions();
+                } else {
+                    alert('❌ Error refreshing: ' + result.error);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Load transactions when page loads
+        window.onload = function() {
+            fetchTransactions();
+        }
+    </script>
+</body>
+</html>

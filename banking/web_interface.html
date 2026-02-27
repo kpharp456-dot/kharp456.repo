@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plaid Banking Connection</title>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .navigation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            background-color: #138496;
+        }
+        .nav-btn.home {
+            background-color: #6c757d;
+        }
+        .nav-btn.home:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <h3>🧭 Quick Navigation</h3>
+            <div class="nav-buttons">
+                <a href="/banking" class="nav-btn">📊 Transaction Editor</a>
+                <a href="/connected-banks" class="nav-btn">🏦 View Connected Banks</a>
+                <a href="/analytics" class="nav-btn">📈 Analytics</a>
+                <a href="/categorization-rules" class="nav-btn">🏷️ Categorization Rules</a>
+                <a href="/categories" class="nav-btn">📋 Categories</a>
+                <a href="/" class="nav-btn home">🏠 Home</a>
+            </div>
+        </div>
+        
+        <h1>🏦 Connect Your Bank Account</h1>
+        
+        <button id="link-button" class="button">Connect a Bank Account</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        async function initializePlaid() {
+            try {
+                console.log('Fetching link token...');
+                const response = await fetch('/api/plaid/create_link_token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                console.log('Link token response:', data);
+                
+                if (data.success && data.link_token) {
+                    console.log('Creating Plaid handler with token:', data.link_token);
+                    const handler = Plaid.create({
+                        token: data.link_token,
+                        onSuccess: async (public_token, metadata) => {
+                            console.log('Success!', public_token, metadata);
+                            
+                            try {
+                                const response = await fetch('/exchange-token', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ public_token: public_token })
+                                });
+                                
+                                const result = await response.json();
+                                
+                                if (result.success) {
+                                    document.getElementById('result').className = 'result success';
+                                    document.getElementById('result').style.display = 'block';
+                                    document.getElementById('result').innerHTML = `
+                                        <h3>✅ Bank Account Connected Successfully!</h3>
+                                        <p><strong>Access Token:</strong> ${result.access_token}</p>
+                                        <p><strong>Item ID:</strong> ${result.item_id}</p>
+                                        <p><strong>Bank:</strong> ${metadata.institution.name}</p>
+                                        <p><strong>Account:</strong> ${metadata.accounts.map(acc => acc.name).join(', ')}</p>
+                                    `;
+                                } else {
+                                    throw new Error(result.error);
+                                }
+                            } catch (error) {
+                                document.getElementById('result').className = 'result error';
+                                document.getElementById('result').style.display = 'block';
+                                document.getElementById('result').innerHTML = `
+                                    <h3>❌ Error</h3>
+                                    <p>${error.message}</p>
+                                `;
+                            }
+                        },
+                        onLoad: () => {
+                            console.log('Plaid Link loaded');
+                        },
+                        onExit: (err, metadata) => {
+                            console.log('User exited Plaid Link', err, metadata);
+                            if (err != null) {
+                                document.getElementById('result').className = 'result error';
+                                document.getElementById('result').style.display = 'block';
+                                document.getElementById('result').innerHTML = `
+                                    <h3>❌ Connection Failed</h3>
+                                    <p>${err.error_message}</p>
+                                `;
+                            }
+                        },
+                    });
+                    console.log('Plaid handler created:', handler);
+                    return handler;
+                } else {
+                    const errorMsg = data.error || 'No link token received from server';
+                    throw new Error(errorMsg);
+                }
+            } catch (error) {
+                console.error('Failed to create link token:', error);
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML = `
+                    <h3>❌ Error</h3>
+                    <p>Failed to initialize Plaid: ${error.message}</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Check browser console for details</p>
+                `;
+                return null;
+            }
+        }
+
+        // Handle button click
+        document.getElementById('link-button').onclick = async function() {
+            console.log('Button clicked');
+            const handler = await initializePlaid();
+            console.log('Handler returned:', handler);
+            if (handler) {
+                console.log('Opening Plaid Link...');
+                handler.open();
+            } else {
+                console.error('No handler available');
+            }
+        };
+    </script>
+</body>
+</html>

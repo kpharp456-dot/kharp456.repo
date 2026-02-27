@@ -1,0 +1,20 @@
+{
+  "bank_1": {
+    "item_id": "ny3qwGwj9NtxZndP7vJNcqvxr6WLPbt8DaL7K",
+    "access_token": "access-sandbox-09ec3375-8160-4c5c-b039-b81521868e72",
+    "institution_name": "Unknown Bank",
+    "accounts": [
+      {
+        "name": "Plaid Checking",
+        "type": "depository",
+        "subtype": "checking"
+      },
+      {
+        "name": "Plaid Saving",
+        "type": "depository",
+        "subtype": "savings"
+      }
+    ],
+    "date_connected": "2026-02-27T14:09:17.227669"
+  }
+}

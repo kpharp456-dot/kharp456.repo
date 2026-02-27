@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorization Rules - Banking Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 5px;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn:hover { opacity: 0.8; }
+        
+        .navigation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            background-color: #138496;
+        }
+        .nav-btn.home {
+            background-color: #6c757d;
+        }
+        .nav-btn.home:hover {
+            background-color: #5a6268;
+        }
+        
+        .rules-container {
+            margin-top: 20px;
+        }
+        .rule-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+            margin-bottom: 15px;
+            transition: box-shadow 0.3s ease;
+        }
+        .rule-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .rule-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .rule-description {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .rule-conditions {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .rule-actions {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .condition-item, .action-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .condition-label, .action-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #28a745;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .rule-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .no-rules {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .no-rules-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            height: 60px;
+            resize: vertical;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <h3>🧭 Quick Navigation</h3>
+            <div class="nav-buttons">
+                <a href="/banking" class="nav-btn">📊 Transaction Editor</a>
+                <a href="/connect" class="nav-btn">🔗 Connect a Bank</a>
+                <a href="/connected-banks" class="nav-btn">🏦 View Connected Banks</a>
+                <a href="/analytics" class="nav-btn">📈 Analytics</a>
+                <a href="/categories" class="nav-btn">📋 Categories</a>
+                <a href="/" class="nav-btn home">🏠 Home</a>
+            </div>
+        </div>
+
+        <div class="header">
+            <h1>🏷️ Categorization Rules</h1>
+            <div>
+                <button class="btn btn-success" onclick="showAddRuleModal()">➕ Add Rule</button>
+                <button class="btn btn-warning" onclick="applyRulesToAll()">🔄 Apply to All Transactions</button>
+                <button class="btn btn-primary" onclick="loadRules()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div>🔄 Loading categorization rules...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Rule Modal -->
+    <div id="ruleModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add Categorization Rule</h2>
+            <form id="ruleForm">
+                <input type="hidden" id="ruleId">
+                
+                <div class="form-group">
+                    <label for="ruleName">Rule Name:</label>
+                    <input type="text" id="ruleName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ruleDescription">Description:</label>
+                    <textarea id="ruleDescription"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nameContains">Transaction name contains (comma-separated):</label>
+                    <input type="text" id="nameContains" placeholder="e.g., uber,starbucks,mcdonald">
+                </div>
+                
+                <div class="form-group">
+                    <label for="amountCondition">Amount Condition:</label>
+                    <select id="amountCondition">
+                        <option value="">Any amount</option>
+                        <option value="greater_than">Greater than</option>
+                        <option value="less_than">Less than</option>
+                    </select>
+                    <input type="number" id="amountValue" step="0.01" style="width: 150px; margin-left: 10px;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="setCategory">Set Category To:</label>
+                    <select id="setCategory" required>
+                        <option value="">Select category...</option>
+                        <option value="Food & Dining">Food & Dining</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Bills & Utilities">Bills & Utilities</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Education">Education</option>
+                        <option value="Personal Care">Personal Care</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Income">Income</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Uncategorized">Uncategorized</option>
+                    </select>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Rule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let rules = [];
+
+        // Load rules from API
+        async function loadRules() {
+            try {
+                const response = await fetch('/api/categorization-rules');
+                const data = await response.json();
+                
+                if (data.success) {
+                    rules = data.rules;
+                    renderRules();
+                } else {
+                    document.getElementById('content').innerHTML = `
+                        <div class="error">
+                            ❌ Error loading rules: ${data.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Render rules
+        function renderRules() {
+            const content = document.getElementById('content');
+            
+            if (rules.length === 0) {
+                content.innerHTML = `
+                    <div class="no-rules">
+                        <div class="no-rules-icon">🏷️</div>
+                        <h2>No Categorization Rules</h2>
+                        <p>Create rules to automatically categorize your transactions based on patterns.</p>
+                        <button class="btn btn-success" onclick="showAddRuleModal()">
+                            ➕ Create Your First Rule
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const rulesHtml = rules.map(rule => {
+                const conditionsHtml = renderConditions(rule.conditions);
+                const actionsHtml = renderActions(rule.actions);
+                
+                return `
+                    <div class="rule-card">
+                        <div class="rule-header">
+                            <div>
+                                <div class="rule-name">${rule.name}</div>
+                                <div class="rule-description">${rule.description}</div>
+                            </div>
+                            <div class="rule-controls">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" ${rule.enabled ? 'checked' : ''} 
+                                           onchange="toggleRule('${rule.id}', this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                                <button class="btn btn-primary" onclick="editRule('${rule.id}')">✏️</button>
+                                <button class="btn btn-danger" onclick="deleteRule('${rule.id}')">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="rule-conditions">
+                            <div class="condition-label">Conditions:</div>
+                            ${conditionsHtml}
+                        </div>
+                        <div class="rule-actions">
+                            <div class="action-label">Actions:</div>
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `
+                <div class="rules-container">
+                    ${rulesHtml}
+                </div>
+            `;
+        }
+
+        // Render rule conditions
+        function renderConditions(conditions) {
+            const items = [];
+            
+            if (conditions.name_contains) {
+                items.push(`<div class="condition-item">Name contains: ${conditions.name_contains.join(', ')}</div>`);
+            }
+            
+            if (conditions.amount_greater_than !== undefined) {
+                items.push(`<div class="condition-item">Amount > $${conditions.amount_greater_than}</div>`);
+            }
+            
+            if (conditions.amount_less_than !== undefined) {
+                items.push(`<div class="condition-item">Amount < $${conditions.amount_less_than}</div>`);
+            }
+            
+            if (conditions.category === null) {
+                items.push(`<div class="condition-item">Category is uncategorized</div>`);
+            }
+            
+            if (conditions.bank_name) {
+                items.push(`<div class="condition-item">Bank: ${conditions.bank_name}</div>`);
+            }
+            
+            return items.length > 0 ? items.join('') : '<div class="condition-item">Always match</div>';
+        }
+
+        // Render rule actions
+        function renderActions(actions) {
+            const items = [];
+            
+            if (actions.set_category) {
+                items.push(`<div class="action-item">Set category to: ${actions.set_category}</div>`);
+            }
+            
+            return items.length > 0 ? items.join('') : '<div class="action-item">No actions</div>';
+        }
+
+        // Show add rule modal
+        function showAddRuleModal() {
+            document.getElementById('modalTitle').textContent = 'Add Categorization Rule';
+            document.getElementById('ruleForm').reset();
+            document.getElementById('ruleId').value = '';
+            document.getElementById('ruleModal').style.display = 'block';
+        }
+
+        // Edit rule
+        function editRule(ruleId) {
+            const rule = rules.find(r => r.id === ruleId);
+            if (!rule) return;
+
+            document.getElementById('modalTitle').textContent = 'Edit Categorization Rule';
+            document.getElementById('ruleId').value = rule.id;
+            document.getElementById('ruleName').value = rule.name;
+            document.getElementById('ruleDescription').value = rule.description;
+            
+            // Set conditions
+            if (rule.conditions.name_contains) {
+                document.getElementById('nameContains').value = rule.conditions.name_contains.join(', ');
+            }
+            
+            if (rule.conditions.amount_greater_than !== undefined) {
+                document.getElementById('amountCondition').value = 'greater_than';
+                document.getElementById('amountValue').value = rule.conditions.amount_greater_than;
+            } else if (rule.conditions.amount_less_than !== undefined) {
+                document.getElementById('amountCondition').value = 'less_than';
+                document.getElementById('amountValue').value = rule.conditions.amount_less_than;
+            }
+            
+            // Set actions
+            if (rule.actions.set_category) {
+                document.getElementById('setCategory').value = rule.actions.set_category;
+            }
+            
+            document.getElementById('ruleModal').style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('ruleModal').style.display = 'none';
+        }
+
+        // Toggle rule enabled/disabled
+        async function toggleRule(ruleId, enabled) {
+            const rule = rules.find(r => r.id === ruleId);
+            if (rule) {
+                rule.enabled = enabled;
+                await saveRules();
+            }
+        }
+
+        // Delete rule
+        async function deleteRule(ruleId) {
+            if (!confirm('Are you sure you want to delete this rule?')) {
+                return;
+            }
+            
+            rules = rules.filter(r => r.id !== ruleId);
+            await saveRules();
+        }
+
+        // Save rules
+        async function saveRules() {
+            try {
+                const response = await fetch('/api/categorization-rules', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ rules: rules })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    renderRules();
+                } else {
+                    showMessage(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Apply rules to all transactions
+        async function applyRulesToAll() {
+            if (!confirm('This will apply all rules to your existing transactions. Continue?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/apply-categorization-rules', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                } else {
+                    showMessage(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.header'));
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Handle form submission
+        document.getElementById('ruleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const ruleId = document.getElementById('ruleId').value;
+            const name = document.getElementById('ruleName').value;
+            const description = document.getElementById('ruleDescription').value;
+            const nameContains = document.getElementById('nameContains').value;
+            const amountCondition = document.getElementById('amountCondition').value;
+            const amountValue = document.getElementById('amountValue').value;
+            const setCategory = document.getElementById('setCategory').value;
+            
+            // Build conditions
+            const conditions = {};
+            if (nameContains) {
+                conditions.name_contains = nameContains.split(',').map(s => s.trim()).filter(s => s);
+            }
+            
+            if (amountCondition && amountValue) {
+                if (amountCondition === 'greater_than') {
+                    conditions.amount_greater_than = parseFloat(amountValue);
+                } else if (amountCondition === 'less_than') {
+                    conditions.amount_less_than = parseFloat(amountValue);
+                }
+            }
+            
+            // Only apply to uncategorized transactions by default
+            conditions.category = null;
+            
+            // Build actions
+            const actions = {};
+            if (setCategory) {
+                actions.set_category = setCategory;
+            }
+            
+            // Create or update rule
+            const rule = {
+                id: ruleId || 'rule_' + Date.now(),
+                name: name,
+                description: description,
+                conditions: conditions,
+                actions: actions,
+                enabled: true
+            };
+            
+            if (ruleId) {
+                // Update existing rule
+                const index = rules.findIndex(r => r.id === ruleId);
+                if (index !== -1) {
+                    rules[index] = rule;
+                }
+            } else {
+                // Add new rule
+                rules.push(rule);
+            }
+            
+            await saveRules();
+            closeModal();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('ruleModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Load rules when page loads
+        window.onload = function() {
+            loadRules();
+        };
+    </script>
+</body>
+</html>
