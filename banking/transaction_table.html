@@ -77,8 +77,16 @@
             background-color: #4CAF50;
             color: white;
         }
-        .btn-danger {
-            background-color: #f44336;
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+        .btn-info {
+            background-color: #17a2b8;
             color: white;
         }
         .search-box {
@@ -103,6 +111,18 @@
             background-color: #f8f9fa;
             font-weight: 500;
         }
+        .account-type {
+            background-color: #e8f4fd;
+            font-weight: 500;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .account-name {
+            background-color: #f0f8ff;
+            font-weight: 500;
+            padding: 8px;
+            border-radius: 4px;
+        }
         .navigation {
             background-color: #f8f9fa;
             padding: 20px;
@@ -118,16 +138,101 @@
         .nav-buttons .btn {
             margin: 0;
         }
+        .column-filter {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        
+        .column-filter.filter-active {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .sortable:hover {
+            background-color: #e9ecef;
+        }
+        .sort-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        .sort-asc::after {
+            content: '▲';
+            opacity: 1;
+            color: #2196F3;
+        }
+        .sort-desc::after {
+            content: '▼';
+            opacity: 1;
+            color: #2196F3;
+        }
+        .filter-active {
+            background-color: #e3f2fd;
+            border-color: #2196F3;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Fetch from Banks Modal -->
+    <div id="fetchModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:8px; padding:30px; min-width:380px; max-width:500px; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <h2 style="margin-top:0;">💰 Fetch from Banks</h2>
+
+            <div style="margin-bottom:16px;">
+                <label style="font-weight:600; display:block; margin-bottom:8px;">Banks</label>
+                <div id="bankCheckboxes" style="display:flex; flex-direction:column; gap:6px;">
+                    <em style="color:#999;">Loading banks...</em>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="font-weight:600; display:block; margin-bottom:8px;">Date Range</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div>
+                        <label style="font-size:12px; color:#555;">From</label>
+                        <input type="date" id="fetchStartDate" style="display:block; padding:6px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:#555;">To</label>
+                        <input type="date" id="fetchEndDate" style="display:block; padding:6px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                </div>
+                <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="setDatePreset(30)">Last 30 days</button>
+                    <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="setDatePreset(90)">Last 90 days</button>
+                    <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="setDatePreset(180)">Last 6 months</button>
+                    <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="setDatePreset(365)">Last year</button>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button class="btn btn-secondary" onclick="closeFetchModal()">Cancel</button>
+                <button class="btn btn-warning" onclick="executeFetch()">💰 Fetch Transactions</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🏦 Banking Transaction Editor</h1>
             <div>
                 <button class="btn btn-primary" onclick="fetchTransactions()">🔄 Refresh</button>
-                <button class="btn btn-warning" onclick="refreshFromBanks()">💰 Fetch from Banks (API)</button>
+                <button class="btn btn-warning" onclick="openFetchModal()">💰 Fetch from Banks (API)</button>
+                <button class="btn btn-info" onclick="document.getElementById('csvFile').click()">📁 Import CSV</button>
                 <button class="btn btn-success" onclick="saveChanges()">💾 Save Changes</button>
+                <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="importCSV(this)">
             </div>
         </div>
 
@@ -144,33 +249,77 @@
             </div>
         </div>
 
-        <div class="header">
-            <h3>🔍 Search & Filter</h3>
-            <input type="text" class="search-box" id="searchBox" placeholder="Search transactions..." onkeyup="filterTransactions()">
-            <div style="margin-left: 20px;">
-                <label for="dateFilter">From:</label>
-                <input type="date" id="dateFilter" class="date-filter" onchange="filterTransactions()">
-                <label for="dateFilterTo">To:</label>
-                <input type="date" id="dateFilterTo" class="date-filter" onchange="filterTransactions()">
-                <button class="btn btn-primary" onclick="clearDateFilter()">Clear Dates</button>
-            </div>
-        </div>
-
         <table id="transactionTable">
             <thead>
+                <tr id="filterRow">
+                    <td>
+                        <input type="date" class="column-filter" id="filter-date-from" placeholder="From..." onkeyup="filterColumn('date')">
+                        <input type="date" class="column-filter" id="filter-date-to" placeholder="To..." onkeyup="filterColumn('date')">
+                    </td>
+                    <td><input type="text" class="column-filter" id="filter-name" placeholder="Filter description..." onkeyup="filterColumn('name')"></td>
+                    <td>
+                        <input type="number" class="column-filter" id="filter-amount-from" placeholder="From..." onkeyup="filterColumn('amount')">
+                        <input type="number" class="column-filter" id="filter-amount-to" placeholder="To..." onkeyup="filterColumn('amount')">
+                    </td>
+                    <td>
+                        <select class="column-filter" id="filter-bank_name" onchange="filterColumn('bank_name')">
+                            <option value="">All Banks</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="column-filter" id="filter-account_name" onchange="filterColumn('account_name')">
+                            <option value="">All Accounts</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="column-filter" id="filter-account_type" onchange="filterColumn('account_type')">
+                            <option value="">All Account Types</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="column-filter" id="filter-category" onchange="filterColumn('category')">
+                            <option value="">All Categories</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="clearAllFilters()" style="padding: 4px 8px; font-size: 12px;">Clear All</button>
+                    </td>
+                </tr>
                 <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Bank</th>
-                    <th>Category</th>
-                    <th>Transaction ID</th>
+                    <th class="sortable" onclick="sortTable('date')" data-column="date">
+                        Date
+                        <span class="sort-icon"></span>
+                    </th>
+                    <th class="sortable" onclick="sortTable('name')" data-column="name">
+                        Description
+                        <span class="sort-icon"></span>
+                    </th>
+                    <th class="sortable" onclick="sortTable('amount')" data-column="amount">
+                        Amount
+                        <span class="sort-icon"></span>
+                    </th>
+                    <th class="sortable" onclick="sortTable('bank_name')" data-column="bank_name">
+                        Bank
+                        <span class="sort-icon"></span>
+                    </th>
+                    <th class="sortable" onclick="sortTable('account_name')" data-column="account_name">
+                        Account
+                        <span class="sort-icon"></span>
+                    </th>
+                    <th class="sortable" onclick="sortTable('account_type')" data-column="account_type">
+                        Account Type
+                        <span class="sort-icon"></span>
+                    </th>
+                    <th class="sortable" onclick="sortTable('category')" data-column="category">
+                        Category
+                        <span class="sort-icon"></span>
+                    </th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="transactionTableBody">
                 <tr>
-                    <td colspan="7" style="text-align: center;">Loading transactions...</td>
+                    <td colspan="8" style="text-align: center;">Loading transactions...</td>
                 </tr>
             </tbody>
         </table>
@@ -191,14 +340,70 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    transactions = data.transactions;
+                    transactions = data.transactions || [];
+                    populateFilterOptions();
                     renderTransactions();
                 } else {
-                    alert('Error fetching transactions: ' + data.error);
+                    alert('❌ Error loading transactions: ' + data.error);
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                alert('❌ Error: ' + error.message);
             }
+        }
+
+        let connectedBanks = {}; // Global variable to store connected banks data
+
+        // Load connected banks data
+        async function loadConnectedBanks() {
+            try {
+                const response = await fetch('/api/connected-banks');
+                const data = await response.json();
+                connectedBanks = data.banks || data;
+            } catch (error) {
+                console.error('Error loading connected banks:', error);
+                // Fallback data if fetch fails
+                connectedBanks = {
+                    "Truliant": {
+                        "institution_name": "Truliant",
+                        "accounts": [
+                            {"name": "Savings", "subtype": "savings"},
+                            {"name": "Debit", "subtype": "checking"},
+                            {"name": "HYSA", "subtype": "savings"}
+                        ]
+                    },
+                    "Capital_One": {
+                        "institution_name": "Capital One",
+                        "accounts": [
+                            {"name": "360 Performance Savings", "subtype": "savings"},
+                            {"name": "360 Checking", "subtype": "checking"}
+                        ]
+                    }
+                };
+            }
+        }
+
+        // Get account type from connected banks data or default to N/A
+        function getAccountType(bankName, transactionId) {
+            // Check if transaction has account_type field (for CSV imports)
+            if (transactionId && transactionId.startsWith('csv-')) {
+                return 'N/A'; // CSV uploads show N/A
+            }
+            
+            // Try to get from connected_banks data
+            const bankData = connectedBanks[bankName];
+            if (bankData && bankData.accounts && bankData.accounts.length > 0) {
+                // Default to checking account if available, otherwise first account
+                const checkingAccount = bankData.accounts.find(acc => acc.subtype === 'checking');
+                if (checkingAccount) {
+                    return checkingAccount.subtype.charAt(0).toUpperCase() + checkingAccount.subtype.slice(1);
+                }
+                // If no checking, use first account
+                const firstAccount = bankData.accounts[0];
+                return firstAccount.subtype.charAt(0).toUpperCase() + firstAccount.subtype.slice(1);
+            }
+            
+            // Fallback for unknown banks
+            return 'N/A';
         }
 
         // Render transactions in the table
@@ -207,18 +412,20 @@
             const dataToRender = filteredTransactions || transactions;
             
             if (dataToRender.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No transactions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No transactions found</td></tr>';
                 return;
             }
 
             tbody.innerHTML = dataToRender.map((transaction, index) => `
-                <tr data-index="${index}">
+                <tr data-id="${transaction.transaction_id}" data-index="${index}">
                     <td>${transaction.date}</td>
                     <td class="editable" contenteditable="true" data-field="name">${transaction.name}</td>
                     <td class="amount-${transaction.amount >= 0 ? 'positive' : 'negative'}">
                         $${Math.abs(transaction.amount).toFixed(2)}
                     </td>
                     <td class="bank-column">${transaction.bank_name || 'Unknown Bank'}</td>
+                    <td class="account-name">${transaction.account_name || 'N/A'}</td>
+                    <td class="account-type editable" contenteditable="true" data-field="account_type">${transaction.account_type || 'N/A'}</td>
                     <td>
                         <select class="category-select" data-field="category">
                             ${categories.map(cat => 
@@ -226,11 +433,8 @@
                             ).join('')}
                         </select>
                     </td>
-                    <td style="font-size: 12px; max-width: 150px; word-break: break-all;">
-                        ${transaction.transaction_id || 'N/A'}
-                    </td>
                     <td>
-                        <button class="btn btn-danger" onclick="deleteTransaction(${index})">🗑️</button>
+                        <button class="btn btn-danger" onclick="deleteTransaction('${transaction.transaction_id}')">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -238,59 +442,41 @@
             // Add event listeners for editable fields
             document.querySelectorAll('.editable').forEach(element => {
                 element.addEventListener('blur', function() {
-                    const index = this.closest('tr').dataset.index;
+                    const id = this.closest('tr').dataset.id;
                     const field = this.dataset.field;
-                    transactions[index][field] = this.textContent;
+                    const t = transactions.find(tx => tx.transaction_id === id);
+                    if (t) t[field] = this.textContent;
                 });
             });
 
             document.querySelectorAll('.category-select').forEach(element => {
                 element.addEventListener('change', function() {
-                    const index = this.closest('tr').dataset.index;
-                    transactions[index].category = this.value;
+                    const id = this.closest('tr').dataset.id;
+                    const t = transactions.find(tx => tx.transaction_id === id);
+                    if (t) t.category = this.value;
+                });
+            });
+
+            document.querySelectorAll('.account-type').forEach(element => {
+                element.addEventListener('blur', function() {
+                    const id = this.closest('tr').dataset.id;
+                    const t = transactions.find(tx => tx.transaction_id === id);
+                    if (t) t.account_type = this.textContent;
                 });
             });
         }
 
-        // Filter transactions based on search and date
-        function filterTransactions() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            const dateFrom = document.getElementById('dateFilter').value;
-            const dateTo = document.getElementById('dateFilterTo').value;
-            
-            const filtered = transactions.filter(transaction => {
-                // Search filter
-                const matchesSearch = transaction.name.toLowerCase().includes(searchTerm) ||
-                    (transaction.category && transaction.category.toLowerCase().includes(searchTerm)) ||
-                    transaction.date.includes(searchTerm) ||
-                    (transaction.bank_name && transaction.bank_name.toLowerCase().includes(searchTerm));
-                
-                // Date filter
-                let matchesDate = true;
-                if (dateFrom && transaction.date < dateFrom) {
-                    matchesDate = false;
-                }
-                if (dateTo && transaction.date > dateTo) {
-                    matchesDate = false;
-                }
-                
-                return matchesSearch && matchesDate;
-            });
-            
-            renderTransactions(filtered);
-        }
-
-        // Clear date filters
-        function clearDateFilter() {
-            document.getElementById('dateFilter').value = '';
-            document.getElementById('dateFilterTo').value = '';
-            filterTransactions();
-        }
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadConnectedBanks();
+            await fetchTransactions();
+        });
 
         // Delete a transaction
-        function deleteTransaction(index) {
+        function deleteTransaction(id) {
             if (confirm('Are you sure you want to delete this transaction?')) {
-                transactions.splice(index, 1);
+                const index = transactions.findIndex(tx => tx.transaction_id === id);
+                if (index !== -1) transactions.splice(index, 1);
                 renderTransactions();
             }
         }
@@ -318,34 +504,303 @@
             }
         }
 
-        // Refresh transactions from all banks
-        async function refreshFromBanks() {
-            try {
-                const confirmRefresh = confirm('💰 This will make API calls to fetch latest transactions from all banks.\n\nContinue with refresh?');
-                if (!confirmRefresh) {
-                    return;
+        // Open the fetch modal and populate bank checkboxes
+        function openFetchModal() {
+            const modal = document.getElementById('fetchModal');
+            modal.style.display = 'flex';
+
+            // Set default dates: last 90 days
+            setDatePreset(90);
+
+            // Populate bank checkboxes from connected banks
+            const container = document.getElementById('bankCheckboxes');
+            if (Object.keys(connectedBanks).length === 0) {
+                container.innerHTML = '<em style="color:#999;">No banks connected.</em>';
+            } else {
+                container.innerHTML = '';
+                for (const [bankId, bankInfo] of Object.entries(connectedBanks)) {
+                    const label = document.createElement('label');
+                    label.style.cssText = 'display:flex; align-items:center; gap:8px; cursor:pointer;';
+                    label.innerHTML = `
+                        <input type="checkbox" value="${bankId}" checked style="width:16px; height:16px;">
+                        <span>${bankInfo.institution_name || bankId}</span>
+                    `;
+                    container.appendChild(label);
                 }
-                
-                alert('🔄 Refreshing transactions from all connected banks...\nThis may take a moment.');
-                
-                const response = await fetch('/refresh-transactions');
+            }
+        }
+
+        function closeFetchModal() {
+            document.getElementById('fetchModal').style.display = 'none';
+        }
+
+        function setDatePreset(days) {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - days);
+            document.getElementById('fetchEndDate').value = end.toISOString().split('T')[0];
+            document.getElementById('fetchStartDate').value = start.toISOString().split('T')[0];
+        }
+
+        async function executeFetch() {
+            const startDate = document.getElementById('fetchStartDate').value;
+            const endDate = document.getElementById('fetchEndDate').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select a date range.');
+                return;
+            }
+            if (startDate > endDate) {
+                alert('Start date must be before end date.');
+                return;
+            }
+
+            // Collect selected bank IDs
+            const checked = document.querySelectorAll('#bankCheckboxes input[type=checkbox]:checked');
+            const bankIds = Array.from(checked).map(cb => cb.value);
+            if (bankIds.length === 0) {
+                alert('Please select at least one bank.');
+                return;
+            }
+
+            closeFetchModal();
+
+            try {
+                const response = await fetch('/refresh-transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bank_ids: bankIds, start_date: startDate, end_date: endDate })
+                });
                 const result = await response.json();
-                
+
                 if (result.success) {
                     alert('✅ ' + result.message);
-                    // Reload transactions from server
                     await fetchTransactions();
                 } else {
-                    alert('❌ Error refreshing: ' + result.error);
+                    alert('❌ Error: ' + result.error);
                 }
             } catch (error) {
                 alert('❌ Error: ' + error.message);
             }
         }
 
+        // Close modal if clicking outside it
+        document.getElementById('fetchModal').addEventListener('click', function(e) {
+            if (e.target === this) closeFetchModal();
+        });
+
+        // Import CSV file
+        async function importCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/import-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ ${result.message}\n\nTotal transactions: ${result.total}`);
+                    // Clear the file input
+                    input.value = '';
+                    // Refresh transactions
+                    await fetchTransactions();
+                } else {
+                    alert(`❌ Import failed: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`❌ Import failed: ${error.message}`);
+            }
+        }
+
         // Load transactions when page loads
         window.onload = function() {
             fetchTransactions();
+        }
+
+        // Column sorting
+        let currentSort = { column: null, direction: 'asc' };
+
+        function sortTable(column) {
+            const headers = document.querySelectorAll('.sortable');
+            headers.forEach(header => {
+                header.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            const header = document.querySelector(`[data-column="${column}"]`);
+            header.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+
+            transactions.sort((a, b) => {
+                let aVal = a[column] || '';
+                let bVal = b[column] || '';
+
+                // Handle numeric sorting for amount
+                if (column === 'amount') {
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                }
+
+                // Handle date sorting
+                if (column === 'date') {
+                    aVal = new Date(aVal);
+                    bVal = new Date(bVal);
+                }
+
+                if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            applyAllFilters();
+        }
+
+        // Column filtering
+        function filterColumn(column) {
+            let filterValue = '';
+            let filterValueTo = '';
+            
+            if (column === 'date') {
+                filterValue = document.getElementById('filter-date-from').value;
+                filterValueTo = document.getElementById('filter-date-to').value;
+            } else if (column === 'amount') {
+                filterValue = document.getElementById('filter-amount-from').value;
+                filterValueTo = document.getElementById('filter-amount-to').value;
+            } else {
+                filterValue = document.getElementById(`filter-${column}`).value;
+            }
+
+            // Update visual indicator
+            const header = document.querySelector(`th[data-column="${column}"]`);
+            const filterInput = document.getElementById(`filter-${column}`);
+            
+            if (filterValue || filterValueTo) {
+                header.classList.add('filter-active');
+                if (filterInput) filterInput.classList.add('filter-active');
+            } else {
+                header.classList.remove('filter-active');
+                if (filterInput) filterInput.classList.remove('filter-active');
+            }
+
+            applyAllFilters();
+        }
+
+        function applyAllFilters() {
+            const filters = {
+                name: document.getElementById('filter-name').value.toLowerCase(),
+                amountFrom: parseFloat(document.getElementById('filter-amount-from').value) || null,
+                amountTo: parseFloat(document.getElementById('filter-amount-to').value) || null,
+                bank_name: document.getElementById('filter-bank_name').value,
+                account_name: document.getElementById('filter-account_name').value,
+                category: document.getElementById('filter-category').value,
+                account_type: document.getElementById('filter-account_type').value,
+                dateFrom: document.getElementById('filter-date-from').value,
+                dateTo: document.getElementById('filter-date-to').value,
+                transaction_id: ''
+            };
+
+            const filtered = transactions.filter(transaction => {
+                // Name filter
+                if (filters.name && !transaction.name.toLowerCase().includes(filters.name)) {
+                    return false;
+                }
+
+                // Amount range filter
+                if (filters.amountFrom !== null && transaction.amount < filters.amountFrom) {
+                    return false;
+                }
+                if (filters.amountTo !== null && transaction.amount > filters.amountTo) {
+                    return false;
+                }
+
+                // Bank filter
+                if (filters.bank_name && transaction.bank_name !== filters.bank_name) {
+                    return false;
+                }
+
+                // Account name filter
+                if (filters.account_name && transaction.account_name !== filters.account_name) {
+                    return false;
+                }
+
+                // Category filter
+                if (filters.category && transaction.category !== filters.category) {
+                    return false;
+                }
+
+                // Account type filter
+                if (filters.account_type && transaction.account_type !== filters.account_type) {
+                    return false;
+                }
+
+                // Date range filter
+                if (filters.dateFrom && transaction.date < filters.dateFrom) {
+                    return false;
+                }
+                if (filters.dateTo && transaction.date > filters.dateTo) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            renderTransactions(filtered);
+        }
+
+        function clearAllFilters() {
+            document.getElementById('filter-date-from').value = '';
+            document.getElementById('filter-date-to').value = '';
+            document.getElementById('filter-name').value = '';
+            document.getElementById('filter-amount-from').value = '';
+            document.getElementById('filter-amount-to').value = '';
+            document.getElementById('filter-bank_name').value = '';
+            document.getElementById('filter-account_name').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-account_type').value = '';
+
+            // Remove filter active classes
+            document.querySelectorAll('.column-filter').forEach(element => {
+                element.classList.remove('filter-active');
+            });
+
+            renderTransactions(transactions);
+        }
+
+        function populateFilterOptions() {
+            // Populate bank filter
+            const banks = [...new Set(transactions.map(t => t.bank_name).filter(Boolean))];
+            const bankFilter = document.getElementById('filter-bank_name');
+            bankFilter.innerHTML = '<option value="">All Banks</option>' +
+                banks.map(bank => `<option value="${bank}">${bank}</option>`).join('');
+
+            // Populate account name filter
+            const accountNames = [...new Set(transactions.map(t => t.account_name).filter(Boolean))];
+            const accountNameFilter = document.getElementById('filter-account_name');
+            accountNameFilter.innerHTML = '<option value="">All Accounts</option>' +
+                accountNames.map(name => `<option value="${name}">${name}</option>`).join('');
+
+            // Populate category filter
+            const categoryFilter = document.getElementById('filter-category');
+            categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+                categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
+            // Populate account type filter
+            const accountTypes = [...new Set(transactions.map(t => t.account_type || 'N/A').filter(Boolean))];
+            const accountTypeFilter = document.getElementById('filter-account_type');
+            accountTypeFilter.innerHTML = '<option value="">All Account Types</option>' +
+                accountTypes.map(type => `<option value="${type}">${type}</option>`).join('');
         }
     </script>
 </body>

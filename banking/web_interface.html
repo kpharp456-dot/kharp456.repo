@@ -127,7 +127,7 @@
                                     headers: {
                                         'Content-Type': 'application/json',
                                     },
-                                    body: JSON.stringify({ public_token: public_token })
+                                    body: JSON.stringify({ public_token: public_token, bank_name: metadata?.institution?.name || 'Unknown Bank' })
                                 });
                                 
                                 const result = await response.json();

@@ -87,7 +87,7 @@ class PlaidClient:
             
         except plaid.ApiException as e:
             print(f"❌ Error creating link token: {e}")
-            return None
+            raise
     
     def exchange_public_token(self, public_token):
         """
@@ -137,7 +137,7 @@ class PlaidClient:
             
         except plaid.ApiException as e:
             print(f"❌ Error getting accounts: {e}")
-            return None
+            raise
     
     def get_transactions(self, access_token, start_date, end_date):
         """
@@ -164,7 +164,7 @@ class PlaidClient:
             
         except plaid.ApiException as e:
             print(f"❌ Error getting transactions: {e}")
-            return None
+            raise
 
 def main():
     """Example usage of the Plaid client."""

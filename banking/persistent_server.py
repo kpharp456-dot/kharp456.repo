@@ -1,3 +1,4 @@
+#!/home/kyle/kharp456.repo/banking/venv/bin/python
 from flask import Flask, request, jsonify, send_from_directory
 import plaid_client
 from environment_switcher import env_switcher
@@ -5,6 +6,8 @@ from datetime import datetime, timedelta
 import json
 import os
 import shutil
+import csv
+import io
 
 app = Flask(__name__)
 
@@ -118,35 +121,57 @@ def get_last_transaction_date():
         print(f"❌ Error getting last transaction date: {e}")
         return None
 
-def fetch_all_transactions():
-    """Fetch transactions from ALL connected banks and save to file"""
+def fetch_all_transactions(bank_ids=None, start_date=None, end_date=None):
+    """Fetch transactions from selected banks and save to file"""
     try:
-        print("🔄 Auto-fetching transactions from all connected banks...")
+        print("🔄 Fetching transactions from selected banks...")
         
         banks = load_connected_banks()
         all_transactions = {}  # Use dict with transaction_id as key for deduplication
         
         if not banks:
-            print("⚠️  No banks connected. Skipping auto-fetch.")
+            print("⚠️  No banks connected. Skipping fetch.")
             return False
         
-        end_date = datetime.now().date()
+        # Filter to selected banks if specified
+        if bank_ids:
+            banks = {k: v for k, v in banks.items() if k in bank_ids}
+            if not banks:
+                print("⚠️  None of the selected banks are connected.")
+                return False
         
-        # Determine start date based on existing data
-        last_date = get_last_transaction_date()
-        if last_date:
-            # Start from 5 days before last transaction to catch any missed ones
-            start_date = last_date - timedelta(days=180)
-            print(f"📅 Incremental fetch: {start_date} to {end_date} (since last transaction)")
-        else:
-            # First run - get last 90 days
+        if end_date is None:
+            end_date = datetime.now().date()
+        elif isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        
+        if start_date is None:
             start_date = end_date - timedelta(days=90)
-            print(f"📅 Initial fetch: {start_date} to {end_date} (last 90 days)")
+        elif isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        
+        print(f"📅 Fetching: {start_date} to {end_date} from {list(banks.keys())}")
         
         for bank_id, bank_info in banks.items():
             try:
                 print(f"📥 Fetching from {bank_info['institution_name']}...")
                 client = plaid_client.PlaidClient()
+
+                # Build account_id -> {name, subtype} map from Plaid
+                account_map = {}
+                try:
+                    accounts = client.get_accounts(bank_info['access_token'])
+                    for acc in accounts:
+                        acc_id = acc.account_id if hasattr(acc, 'account_id') else acc.get('account_id')
+                        acc_name = acc.name if hasattr(acc, 'name') else acc.get('name', 'Unknown Account')
+                        acc_subtype = str(acc.subtype) if hasattr(acc, 'subtype') else acc.get('subtype', 'unknown')
+                        acc_type = str(acc.type) if hasattr(acc, 'type') else acc.get('type', 'unknown')
+                        if acc_id:
+                            account_map[acc_id] = {'name': acc_name, 'subtype': acc_subtype, 'type': acc_type}
+                    print(f"  📋 Mapped {len(account_map)} accounts for {bank_info['institution_name']}")
+                except Exception as ae:
+                    print(f"  ⚠️  Could not fetch accounts for {bank_info['institution_name']}: {ae}")
+
                 transactions = client.get_transactions(bank_info['access_token'], start_date, end_date)
                 
                 if transactions:
@@ -155,14 +180,26 @@ def fetch_all_transactions():
                         # Use transaction_id as unique key for deduplication
                         transaction_key = t.transaction_id if hasattr(t, 'transaction_id') else f"{bank_id}_{t.date}_{t.name}_{t.amount}"
                         
+                        account_id = getattr(t, 'account_id', None)
+                        account_info = account_map.get(account_id, {})
+                        account_name = account_info.get('name', 'Unknown Account')
+                        account_subtype = account_info.get('subtype', 'unknown')
+                        account_type = account_info.get('type', 'unknown')
+
+                        raw_amount = float(t.amount)
+                        amount = -raw_amount if account_type == 'depository' else raw_amount
+
                         all_transactions[transaction_key] = {
                             'transaction_id': transaction_key,
                             'date': str(t.date),
                             'name': t.name,
-                            'amount': float(t.amount),
+                            'amount': amount,
                             'category': t.category[0] if t.category else 'Uncategorized',
                             'bank_id': bank_id,
-                            'bank_name': bank_info['institution_name']
+                            'bank_name': bank_info['institution_name'],
+                            'account_id': account_id,
+                            'account_name': account_name,
+                            'account_type': account_subtype
                         }
                         new_count += 1
                     print(f"✅ Got {new_count} transactions from {bank_info['institution_name']}")
@@ -457,21 +494,24 @@ def get_transactions():
     try:
         print("Fetching transactions from all banks...")
         
-        # First try to load from file
+        # Load from file only — never auto-fetch from Plaid
         saved_transactions = load_transactions_from_file()
         
-        if saved_transactions:
+        if saved_transactions is not None:
             return jsonify({'success': True, 'transactions': saved_transactions})
         
-        # If no saved file, fetch from all connected banks (initial fetch)
+        # No saved file exists — return empty list
+        return jsonify({'success': True, 'transactions': []})
+        
+        # Dead code below kept for reference (manual refresh only)
         banks = load_connected_banks()
-        all_transactions = {}  # Use dict for deduplication
+        all_transactions = {}
         
         if not banks:
             return jsonify({'success': False, 'error': 'No banks connected. Please connect a bank first.'})
         
         end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=90)  # Initial fetch: last 90 days
+        start_date = end_date - timedelta(days=90)
         print(f"📅 Initial fetch: {start_date} to {end_date} (last 90 days)")
         
         for bank_id, bank_info in banks.items():
@@ -485,6 +525,21 @@ def get_transactions():
                         # Use transaction_id as unique key for deduplication
                         transaction_key = t.transaction_id if hasattr(t, 'transaction_id') else f"{bank_id}_{t.date}_{t.name}_{t.amount}"
                         
+                        # Get account information
+                        account_id = getattr(t, 'account_id', None)
+                        account_name = 'Unknown Account'
+                        account_subtype = 'unknown'
+                        
+                        # Map account_id to account name using connected banks data
+                        if account_id and bank_info.get('accounts'):
+                            for account in bank_info['accounts']:
+                                # Note: Plaid account_id might not directly match, so we may need to 
+                                # fetch account details or use a different matching strategy
+                                if account.get('account_id') == account_id:
+                                    account_name = account.get('name', 'Unknown Account')
+                                    account_subtype = account.get('subtype', 'unknown')
+                                    break
+                        
                         all_transactions[transaction_key] = {
                             'transaction_id': transaction_key,
                             'date': str(t.date),
@@ -492,7 +547,10 @@ def get_transactions():
                             'amount': float(t.amount),
                             'category': t.category[0] if t.category else 'Uncategorized',
                             'bank_id': bank_id,
-                            'bank_name': bank_info['institution_name']
+                            'bank_name': bank_info['institution_name'],
+                            'account_id': account_id,
+                            'account_name': account_name,
+                            'account_type': account_subtype
                         }
                         
             except Exception as e:
@@ -573,7 +631,14 @@ def exchange_token():
                 "item_id": item_id,
                 "access_token": access_token,
                 "institution_name": bank_name,
-                "accounts": [{"name": acc.name, "type": str(acc.type), "subtype": str(acc.subtype)} for acc in accounts],
+                "accounts": [
+                    {
+                        "account_id": acc.account_id,
+                        "name": acc.name, 
+                        "type": str(acc.type), 
+                        "subtype": str(acc.subtype)
+                    } for acc in accounts
+                ],
                 "date_connected": datetime.now().isoformat()
             }
             
@@ -585,7 +650,7 @@ def exchange_token():
                 'bank_id': bank_id,
                 'access_token': access_token,
                 'item_id': item_id,
-                'accounts': [{'name': acc.name, 'type': acc.type} for acc in accounts] if accounts else [],
+                'accounts': [{'name': acc.name, 'type': str(acc.type)} for acc in accounts] if accounts else [],
                 'all_banks': banks
             })
         else:
@@ -594,15 +659,25 @@ def exchange_token():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/refresh-transactions')
+@app.route('/refresh-transactions', methods=['GET', 'POST'])
 def refresh_transactions():
-    """Manually refresh transactions from all banks"""
+    """Manually refresh transactions from selected banks"""
     try:
-        success = fetch_all_transactions()
+        bank_ids = None
+        start_date = None
+        end_date = None
+        
+        if request.method == 'POST':
+            data = request.get_json() or {}
+            bank_ids = data.get('bank_ids') or None
+            start_date = data.get('start_date') or None
+            end_date = data.get('end_date') or None
+        
+        success = fetch_all_transactions(bank_ids=bank_ids, start_date=start_date, end_date=end_date)
         if success:
-            return jsonify({'success': True, 'message': 'Transactions refreshed successfully'})
+            return jsonify({'success': True, 'message': 'Transactions fetched successfully'})
         else:
-            return jsonify({'success': False, 'error': 'Failed to refresh transactions'})
+            return jsonify({'success': False, 'error': 'Failed to fetch transactions'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -772,6 +847,144 @@ def create_link_token():
         return jsonify({'success': True, 'link_token': link_token})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/import-csv', methods=['POST'])
+def import_csv():
+    """Import transactions from CSV file"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'})
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'})
+        
+        if not file.filename.lower().endswith('.csv'):
+            return jsonify({'success': False, 'error': 'File must be a CSV'})
+        
+        # Read CSV content
+        stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+        csv_reader = csv.DictReader(stream)
+        
+        # Load existing transactions
+        existing_transactions = load_transactions_from_file()
+        if not existing_transactions:
+            existing_transactions = []
+        
+        # Track imported transactions
+        imported_count = 0
+        duplicate_count = 0
+        error_count = 0
+        
+        for row in csv_reader:
+            try:
+                # Handle different CSV formats (Chase, Capital One, etc.)
+                transaction = parse_csv_row(row)
+                
+                if transaction:
+                    # Check for duplicates
+                    if not is_duplicate_transaction(transaction, existing_transactions):
+                        existing_transactions.append(transaction)
+                        imported_count += 1
+                    else:
+                        duplicate_count += 1
+                else:
+                    error_count += 1
+                    
+            except Exception as e:
+                print(f"⚠️  Error parsing row: {e}")
+                error_count += 1
+                continue
+        
+        # Sort transactions by date (newest first)
+        existing_transactions.sort(key=lambda x: x.get('date', ''), reverse=True)
+        
+        # Save updated transactions
+        if save_transactions_to_file(existing_transactions):
+            message = f'Imported {imported_count} new transactions'
+            if duplicate_count > 0:
+                message += f', skipped {duplicate_count} duplicates'
+            if error_count > 0:
+                message += f', {error_count} errors'
+                
+            return jsonify({
+                'success': True, 
+                'message': message,
+                'imported': imported_count,
+                'duplicates': duplicate_count,
+                'errors': error_count,
+                'total': len(existing_transactions)
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save transactions'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'CSV import failed: {str(e)}'})
+
+def parse_csv_row(row):
+    """Parse a CSV row into transaction format"""
+    try:
+        # Chase format
+        if 'Transaction Date' in row:
+            date_str = row['Transaction Date']
+            description = row.get('Description', '').strip()
+            amount_str = row.get('Amount', '0').replace(',', '').replace('$', '')
+            category = row.get('Category', 'Uncategorized').strip()
+        # Generic format
+        elif 'Date' in row:
+            date_str = row['Date']
+            description = row.get('Description', row.get('Name', '')).strip()
+            amount_str = row.get('Amount', '0').replace(',', '').replace('$', '')
+            category = row.get('Category', 'Uncategorized').strip()
+        else:
+            return None
+        
+        # Parse amount
+        try:
+            amount = float(amount_str)
+            # Chase uses negative for expenses, positive for income
+            # We'll keep that convention
+        except ValueError:
+            return None
+        
+        # Parse date (try multiple formats)
+        date_formats = ['%m/%d/%Y', '%Y-%m-%d', '%m-%d-%Y']
+        parsed_date = None
+        for fmt in date_formats:
+            try:
+                parsed_date = datetime.strptime(date_str.strip(), fmt).strftime('%Y-%m-%d')
+                break
+            except ValueError:
+                continue
+        
+        if not parsed_date:
+            return None
+        
+        # Create transaction
+        transaction = {
+            'transaction_id': f"csv-{datetime.now().strftime('%Y%m%d%H%M%S')}-{len(description)}",
+            'date': parsed_date,
+            'name': description,
+            'amount': amount,
+            'category': category,
+            'bank_id': 'Chase_Credit_Card',
+            'bank_name': 'Chase Credit Card'
+        }
+        
+        return transaction
+        
+    except Exception as e:
+        print(f"⚠️  Error parsing CSV row: {e}")
+        return None
+
+def is_duplicate_transaction(new_transaction, existing_transactions):
+    """Check if a transaction already exists"""
+    for existing in existing_transactions:
+        if (existing.get('date') == new_transaction.get('date') and
+            existing.get('name') == new_transaction.get('name') and
+            existing.get('amount') == new_transaction.get('amount')):
+            return True
+    return False
 
 if __name__ == '__main__':
     current_env = env_switcher.get_environment_info()

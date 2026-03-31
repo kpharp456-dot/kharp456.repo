@@ -231,6 +231,14 @@
         let transactions = [];
         let categoryPieChart = null;
         let monthlyBarChart = null;
+        
+        // Global analytics variables - define once, use everywhere
+        let totalIncome = 0;
+        let totalExpenses = 0;
+        let netIncome = 0;
+        let transactionCount = 0;
+        let categoryTotals = {};
+        let monthlyData = {};
 
         // Load transactions and analytics
         async function loadAnalytics() {
@@ -265,26 +273,75 @@
             // Filter transactions by date range
             const filteredTransactions = filterTransactionsByDate(transactions, startDate, endDate);
             
-            // Calculate summary
-            const summary = calculateSummary(filteredTransactions);
+            // Calculate all analytics variables once
+            calculateAllAnalytics(filteredTransactions);
             
-            // Calculate category spending
-            const categoryData = calculateCategorySpending(filteredTransactions);
-            
-            // Calculate monthly data
-            const monthlyData = calculateMonthlyData(filteredTransactions);
-            
-            // Render everything
-            renderSummary(summary);
-            renderCategoryPieChart(categoryData);
-            renderMonthlyBarChart(monthlyData);
+            // Render everything using global variables
+            renderSummary();
+            renderCategoryPieChart();
+            renderMonthlyBarChart();
         }
 
-        // Filter transactions by date range
+        // Calculate all analytics variables once
+        function calculateAllAnalytics(transactions) {
+            // Reset all variables
+            totalIncome = 0;
+            totalExpenses = 0;
+            netIncome = 0;
+            transactionCount = 0;
+            categoryTotals = {};
+            monthlyData = {};
+            
+            transactions.forEach(transaction => {
+                // Exclude transfers from calculations
+                if (transaction.category === 'Transfer') {
+                    return;
+                }
+                
+                const amount = parseFloat(transaction.amount);
+                const category = transaction.category || 'Uncategorized';
+                
+                // Calculate income and expenses (unified definition)
+                if (transaction.category == 'Income') {
+                    totalIncome += Math.abs(amount);
+                } else {
+                    totalExpenses += Math.abs(amount);
+                    // Add to category totals (only for non-income categories)
+                    categoryTotals[category] = (categoryTotals[category] || 0) + Math.abs(amount);
+                }
+                
+                // Calculate monthly data
+                const dateParts = transaction.date.split('-');
+                const year = dateParts[0];
+                const month = dateParts[1];
+                const monthKey = new Date(year, month - 1).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                
+                if (!monthlyData[monthKey]) {
+                    monthlyData[monthKey] = { income: 0, expenses: 0, dateObj: new Date(year, month - 1) };
+                }
+                
+                if (transaction.category == 'Income') {
+                    monthlyData[monthKey].income += Math.abs(amount);
+                } else {
+                    monthlyData[monthKey].expenses += Math.abs(amount);
+                }
+            });
+            
+            // Calculate derived values
+            netIncome = totalIncome - totalExpenses;
+            transactionCount = transactions.filter(t => t.category !== 'Transfer').length;
+        }
+
+        // Filter transactions by date range and exclude transfers
         function filterTransactionsByDate(transactions, startDate, endDate) {
-            if (!startDate && !endDate) return transactions;
+            if (!startDate && !endDate) return transactions.filter(t => t.category !== 'Transfer');
             
             return transactions.filter(transaction => {
+                // Exclude transfers
+                if (transaction.category === 'Transfer') {
+                    return false;
+                }
+                
                 const transactionDate = new Date(transaction.date);
                 const start = startDate ? new Date(startDate) : new Date('1900-01-01');
                 const end = endDate ? new Date(endDate) : new Date('2100-12-31');
@@ -293,25 +350,35 @@
             });
         }
 
-        // Calculate summary statistics
-        function calculateSummary(transactions) {
+        // Calculate income and expenses once - define them here and reuse
+        function calculateIncomeAndExpenses(transactions) {
             let income = 0;
             let expenses = 0;
             
             transactions.forEach(transaction => {
+                // Exclude transfers from calculations
+                if (transaction.category === 'Transfer') {
+                    return;
+                }
+                
                 const amount = parseFloat(transaction.amount);
-                if (amount < 0) {
-                    expenses += Math.abs(amount);
+                if (transaction.category == 'Income') {
+                    income += Math.abs(amount);
                 } else {
-                    income += amount;
+                    expenses += Math.abs(amount);
                 }
             });
             
+            return { income, expenses };
+        }
+
+        // Calculate summary statistics
+        function calculateSummary(transactions, income, expenses) {
             return {
                 income: income,
                 expenses: expenses,
                 net: income - expenses,
-                transactionCount: transactions.length
+                transactionCount: transactions.filter(t => t.category !== 'Transfer').length
             };
         }
 
@@ -323,9 +390,9 @@
                 const amount = parseFloat(transaction.amount);
                 const category = transaction.category || 'Uncategorized';
                 
-                // Only include expenses (positive amounts in our system)
-                if (amount > 0) {
-                    categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+                // If transaction not in Transfers or Income THEN add to category totals
+                if (transaction.category !== 'Transfer' && transaction.category !== 'Income') {
+                    categoryTotals[category] = (categoryTotals[category] || 0) + Math.abs(amount);
                 }
             });
             
@@ -337,12 +404,20 @@
             const monthlyData = {};
             
             transactions.forEach(transaction => {
+                // Exclude transfers from monthly calculations
+                if (transaction.category === 'Transfer') {
+                    return;
+                }
+                
                 const amount = parseFloat(transaction.amount);
-                const date = new Date(transaction.date);
-                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                // Parse date string directly to avoid timezone issues
+                const dateParts = transaction.date.split('-');
+                const year = dateParts[0];
+                const month = dateParts[1];
+                const monthKey = new Date(year, month - 1).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
                 
                 if (!monthlyData[monthKey]) {
-                    monthlyData[monthKey] = { income: 0, expenses: 0, dateObj: new Date(date.getFullYear(), date.getMonth(), 1) };
+                    monthlyData[monthKey] = { income: 0, expenses: 0, dateObj: new Date(year, month - 1) };
                 }
                 
                 if (amount < 0) {
@@ -355,21 +430,26 @@
             return monthlyData;
         }
 
+        // Format currency with thousands separator
+        function formatCurrency(amount) {
+            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
         // Render summary cards
-        function renderSummary(summary) {
+        function renderSummary() {
             const summaryHtml = `
                 <div class="summary-cards">
                     <div class="summary-card income">
                         <div class="summary-title">Total Income</div>
-                        <div class="summary-amount">$${summary.income.toFixed(2)}</div>
+                        <div class="summary-amount">${formatCurrency(totalIncome)}</div>
                     </div>
                     <div class="summary-card expenses">
                         <div class="summary-title">Total Expenses</div>
-                        <div class="summary-amount">$${summary.expenses.toFixed(2)}</div>
+                        <div class="summary-amount">${formatCurrency(totalExpenses)}</div>
                     </div>
                     <div class="summary-card net">
                         <div class="summary-title">Net Income</div>
-                        <div class="summary-amount">$${summary.net.toFixed(2)}</div>
+                        <div class="summary-amount">${formatCurrency(netIncome)}</div>
                     </div>
                 </div>
             `;
@@ -393,7 +473,7 @@
         }
 
         // Render category pie chart
-        function renderCategoryPieChart(categoryData) {
+        function renderCategoryPieChart() {
             const ctx = document.getElementById('categoryPieChart').getContext('2d');
             
             if (categoryPieChart) {
@@ -403,9 +483,9 @@
             categoryPieChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: Object.keys(categoryData),
+                    labels: Object.keys(categoryTotals),
                     datasets: [{
-                        data: Object.values(categoryData),
+                        data: Object.values(categoryTotals),
                         backgroundColor: [
                             '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
                             '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
@@ -426,7 +506,7 @@
                                     if (label) {
                                         label += ': ';
                                     }
-                                    label += '$' + context.parsed.toFixed(2);
+                                    label += formatCurrency(context.parsed);
                                     return label;
                                 }
                             }
@@ -437,7 +517,7 @@
         }
 
         // Render monthly bar chart
-        function renderMonthlyBarChart(monthlyData) {
+        function renderMonthlyBarChart() {
             const ctx = document.getElementById('monthlyBarChart').getContext('2d');
             
             if (monthlyBarChart) {
@@ -460,12 +540,12 @@
                         {
                             label: 'Income',
                             data: incomeData,
-                            backgroundColor: '#007bff'
+                            backgroundColor: '#28a745'
                         },
                         {
                             label: 'Expenses',
                             data: expensesData,
-                            backgroundColor: '#ffc107'
+                            backgroundColor: '#dc3545'
                         }
                     ]
                 },
@@ -477,7 +557,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + value.toFixed(0);
+                                    return formatCurrency(value);
                                 }
                             }
                         }
@@ -490,7 +570,7 @@
                                     if (label) {
                                         label += ': ';
                                     }
-                                    label += '$' + context.parsed.y.toFixed(2);
+                                    label += formatCurrency(context.parsed.y);
                                     return label;
                                 }
                             }
