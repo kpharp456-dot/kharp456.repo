@@ -1,64 +1,59 @@
-# 🎲 Ludo - Multiplayer Board Game
+# Personal Banking Dashboard
 
-A real-time multiplayer Ludo game to play with friends online!
+A personal finance web app that connects to bank accounts via the Plaid API to fetch, categorize, and analyze transactions.
 
 ## Features
 
-- **Real-time multiplayer** - Play with 2-4 friends from anywhere
-- **Room codes** - Easy to share and join games
-- **Classic Ludo rules** - Roll a 6 to leave home, capture opponents, race to finish
-- **Beautiful UI** - Modern, responsive design
-
-## Quick Start
-
-### 1. Install dependencies
-```bash
-npm install
-```
-
-### 2. Start the game
-```bash
-npm run dev
-```
-
-This starts both the server (port 3001) and client (port 5173).
-
-### 3. Open in browser
-Navigate to `http://localhost:5173`
-
-### 4. Play!
-1. Enter your name
-2. Create a new game or join with a room code
-3. Share the room code with friends
-4. Host starts the game when everyone's ready
-
-## Game Rules
-
-- **Starting**: Roll a 6 to move a piece out of your home base
-- **Movement**: Move pieces clockwise around the board by the dice value
-- **Capture**: Land on an opponent's piece to send it back home (except on safe spots marked with ★)
-- **Rolling 6**: Get another turn when you roll a 6
-- **Winning**: First player to get all 4 pieces to the center wins!
+- **Transaction management** - View, edit, and categorize transactions across all connected accounts
+- **Multi-bank support** - Connect and manage multiple bank accounts
+- **Categorization rules** - Define rules to automatically categorize transactions by name pattern
+- **Analytics** - Spending breakdowns and trends across categories
+- **Persistent storage** - Transactions saved locally as JSON; changes backed up automatically before each save
 
 ## Tech Stack
 
-- **Frontend**: React + Vite + TailwindCSS
-- **Backend**: Node.js + Express + Socket.io
-- **Real-time**: WebSocket communication
+- **Backend**: Python + Flask
+- **Frontend**: HTML + vanilla JavaScript + Bootstrap
+- **Data source**: Plaid API (production)
 
-## Development
+## Quick Start
+
+### 1. Set up the virtual environment
 
 ```bash
-# Run server only
-npm run server
-
-# Run client only
-npm run client
-
-# Run both
-npm run dev
+python -m venv .venv
+source .venv/bin/activate
+pip install flask plaid-python
 ```
 
-## License
+### 2. Configure Plaid credentials
 
-This is a personal project for playing with friends. The game mechanics are based on the public domain game Ludo/Parcheesi.
+Set your `PLAID_CLIENT_ID`, `PLAID_SECRET`, and environment in `banking/persistent_server.py`.
+
+### 3. Start the server
+
+```bash
+python banking/persistent_server.py
+```
+
+The app runs at `http://localhost:5000`.
+
+## Project Structure
+
+```
+banking/
+  persistent_server.py       # Flask server and Plaid integration
+  transaction_table.html     # Transaction editor UI
+  analytics.html             # Spending analytics UI
+  categories.html            # Category management UI
+  categorization_rules.html  # Categorization rules UI
+  transaction_history/
+    production/              # Saved transaction JSON files
+  lists/
+    production/              # Connected banks config
+```
+
+## Data Notes
+
+- Amounts follow the convention: **positive = money in, negative = money out**
+- Plaid's default sign convention is inverted for depository accounts; the server handles this automatically
